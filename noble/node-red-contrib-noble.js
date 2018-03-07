@@ -25,6 +25,7 @@ module.exports = function(RED) {
 
     var noble = require('noble');
     var os = require('os');
+    var estimote = require('./estimote')
     
     // The main node definition - most things happen in here
     function NobleScan(n) {
@@ -79,6 +80,17 @@ module.exports = function(RED) {
                     msg.measuredPower = measuredPower;
                     msg.accuracy = accuracy;
                     msg.proximity = proximity;
+                }
+            }
+
+            // Test whether BLE follows estimote telemetry spec
+            var estimote_packet = peripheral.advertisement.serviceData.find(function(el) {
+                return el.uuid == estimote.ESTIMOTE_SERVICE_UUID;
+            });
+            if (estimote_packet) {
+                var telemetry = estimote.parseEstimoteTelemetryPacket(estimote_packet.data)
+                if (telemetry) {
+                    msg.payload.telemetry = telemetry
                 }
             }
 
